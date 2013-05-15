@@ -1,0 +1,124 @@
+package com.go123.controller;
+
+import com.go123.persistence.domain.Article;
+import com.go123.persistence.repository.ArticleRepository;
+import org.apache.log4j.Logger;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+
+/**
+ * Created with IntelliJ IDEA.
+ * User: wzhonggo
+ * Date: 12-12-3
+ * Time: 下午8:12
+ * To change this template use File | Settings | File Templates.
+ */
+
+@Component
+public class HtmlParse {
+
+    private static final String URL = "http://fight.pcgames.com.cn/warcraft/";
+    //br_news 包括多个分支但是又不是全部都有
+    private static final String URL_BR_NEWS = "http://fight.pcgames.com.cn/warcraft/br_news";
+
+    public static final int READ_TIMEOUT = 120000;
+    public static final String CHROME_USER_AGENT = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/534.13 (KHTML, like Gecko) Chrome/9.0.597.107 Safari/534.13";
+
+    @Autowired
+    private ArticleRepository articleRepository;
+
+    private static final Logger log = Logger.getLogger("HtmlParse");
+
+
+    //todo: 好像有点问题，无辜插入很多数据, 换成秒变化没有问题，换成分钟变化有问题
+    @Scheduled(cron = "5/30 * * * * ?")
+    public void task() {
+
+        log.info("test");
+        Document doc = null;
+        String[] strings;
+        try {
+            doc = Jsoup.connect(URL).userAgent(CHROME_USER_AGENT).timeout(READ_TIMEOUT).get();
+            Elements contDivs = doc.getElementById("slide02").getElementsByClass("contDiv");
+            Element contDiv = contDivs.remove(0);
+            Elements liList = contDiv.getElementsByClass("ulTxt").select("li");
+
+            Article article;
+
+//            @TODO: 删掉 index
+            int index = 0;
+            for (Element li : liList) {
+
+                if (li.children().size() == 2) {
+                    article = new Article();
+                    log.info(index);
+                    index++;
+                    Element iTitle = li.child(0);
+                    strings = iTitle.text().split("]");
+
+                    if (strings != null && strings.length == 2) {
+                        // [文章] (type) 最后的绝唱 记录WE.Sky的WCG2012 (title) [12-10] (date)
+                        article.setType(strings[0]);
+                        article.setTitle(strings[1]);
+                        article.setDate(li.child(1).text());
+                        //attr方法可以得到标签的属性 例如： <a href="www.test.com"> </a>
+                        article.setUrl(iTitle.select("a").attr("href"));
+
+                        log.debug("testtest");
+                        articleRepository.save(article);
+
+                        log.info(strings[0]);
+                        log.info(strings[1]);
+                    }
+
+                    Element iDate = li.child(1);
+                    log.info(iDate.text());
+                }
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    /*@Test
+    public void task() {
+        Document doc = null;
+        String[] temp;
+        try {
+            doc = Jsoup.connect(URL).userAgent(CHROME_USER_AGENT).timeout(READ_TIMEOUT).get();
+            Elements contDivs = doc.getElementById("slide02").getElementsByClass("contDiv");
+            Element contDiv = contDivs.remove(0);
+            Elements liList = contDiv.getElementsByClass("ulTxt").select("li");
+
+            for (Element li : liList) {
+                for (Element i : li.children()) {
+                    //得到<a>xxx</a> 中间的数据 xxx
+                    temp = i.text().split("]");
+                    if(temp!=null && temp.length==3){
+                        log.info(temp[0]);
+                        log.info(temp[1]);
+                        log.info(temp[2]);
+                    }
+                    log.info(i.text());
+                }
+            }
+
+
+            String title = doc.title();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }*/
+}

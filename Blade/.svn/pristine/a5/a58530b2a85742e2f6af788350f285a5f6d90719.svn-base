@@ -1,0 +1,104 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:task="http://www.springframework.org/schema/task" xmlns:cloud="http://schema.cloudfoundry.org/spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.1.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd
+        http://www.springframework.org/schema/data/jpa
+        http://www.springframework.org/schema/data/jpa/spring-jpa-1.0.xsd
+        http://www.springframework.org/schema/jdbc
+        http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+        http://www.springframework.org/schema/task
+        http://www.springframework.org/schema/task/spring-task-3.1.xsd
+        http://schema.cloudfoundry.org/spring
+        http://schema.cloudfoundry.org/spring/cloudfoundry-spring.xsd"
+        >
+
+    <context:component-scan base-package="com.go123"/>
+    <mvc:annotation-driven/>
+    <task:annotation-driven/>
+
+
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+                <property name="generateDdl" value="true"/>
+                <property name="database" value="MYSQL"/>
+            </bean>
+        </property>
+
+
+        <!-- value属性是在persistence.xml中配置中<persistence-unit/>的name属性 -->
+        <property name="persistenceUnitName" value="db_war3"/>
+    </bean>
+
+    <!--<jdbc:embedded-database id="dataSource" type="HSQL"/>-->
+
+<!--    <jdbc:initialize-database data-source="dataSource">
+        <jdbc:script location="classpath:db_war3.sql"/>
+    </jdbc:initialize-database>-->
+
+
+    <cloud:data-source id="dataSource" />
+
+
+  <!--  <bean class="org.apache.commons.dbcp.BasicDataSource" id="dataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://172.30.48.31:3306/dc237679f53c0453491292dd198c2f1cd"/>
+        <property name="username" value="uG9cXH9hBFdfg"/>
+        <property name="password" value="p8ZTRN43pGV6P"/>
+    </bean>-->
+
+ <!--   <bean class="org.apache.commons.dbcp.BasicDataSource" id="dataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://127.0.0.1:10100/dc237679f53c0453491292dd198c2f1cd"/>
+        <property name="username" value="uObJmgNxqGVAz"/>
+        <property name="password" value="pBld0z74JtRPn"/>
+    </bean>-->
+
+    <!-- <bean class="org.apache.commons.dbcp.BasicDataSource" id="dataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/db_war3?useUnicode=true&amp;characterEncoding=UTF-8"/>
+        <property name="username" value="root"/>
+        <property name="password" value="root"/>
+    </bean>-->
+
+    <!--   <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+          destroy-method="close">
+        <property name="driverClass" value="com.mysql.jdbc.Driver"></property>
+        <property name="jdbcUrl" value="jdbc:mysql://localhost:3306/db_war3?useUnicode=true&amp;characterEncoding=UTF-8"></property>
+
+        <property name="user" value="root"></property>
+        <property name="password" value="root"></property>
+    </bean>-->
+
+
+    <jpa:repositories base-package="com.go123.persistence.repository"/>
+
+    <bean id="viewResolver"
+          class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix">
+            <value>/WEB-INF/pages/</value>
+        </property>
+        <property name="suffix">
+            <value>.jsp</value>
+        </property>
+    </bean>
+
+
+</beans>
